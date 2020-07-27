@@ -1,0 +1,150 @@
+///@desc An almost exact copy of ds_list functionality, but in a struct because structs are so much easier to use, and they are garbage-collected
+///@param _filler a variable to fill the list with when created, usually 0 or undefined
+function Arraylist(_filler) constructor
+{
+	if(_filler == undefined)
+		_filler = 0;
+	
+	//Gamemaker automatically re-sizes arrays that go out of bounds
+	_list = array_create(10000, _filler);
+	_maxIndex = 0;
+
+	///desc adds all argument values to the arraylist, increases _maxIndex accordingly
+	static add = function()
+	{
+		for(var i = 0; i < argument_count; i++)
+		{
+			_list[_maxIndex] = argument[i];
+			_maxIndex++;
+		}
+	}
+	
+	///param _value the value to fill the array with
+	///desc Sets all values until _maxIndex to _value
+	static clear = function(_value)
+	{
+		if(_value == undefined)
+			_value = 0;
+		
+		for(var i = 0; i < _maxIndex; i++)
+		{
+			_list[i] = _value;
+		}
+	}
+	
+	///param _otherList the list to copy from
+	///desc Copies another Arraylist into this list
+	static copy = function(_otherList)
+	{
+		if(instanceof(self) != instanceof(_otherList))
+			show_error("Arraylist copy trying to copy a non-Arraylist", false);
+		else
+		{
+			//Take the higher index, so _list is fully cleared and time is saved vs clearing the rest of the list
+			for(var i = 0; i < max(_otherList._maxIndex, _maxIndex); i++)
+			{
+				_list[i] = _otherList.get(i);
+			}
+		}
+	}
+	
+	///param _value the value to search for
+	///desc Finds the first instance of _value
+	///returns the index of _value if it exists
+	static findIndex = function(_value)
+	{
+		for(var i = 0; i < _maxIndex; i++)
+		{
+			if(_list[i] == _value)
+				return i;
+		}
+		return -1;
+	}
+	
+	///param index the index to find
+	///desc gets a value from the list at the index
+	///returns the value at _index
+	static get = function(_index)
+	{
+		return _list[_index];
+	}
+	
+	///param _index the index to insert at
+	///param _value the value to insert
+	///desc inserts a value at _index position, shifts values to the right one right
+	static insert = function(_index, _value)
+	{
+		if(_index > _maxIndex)
+			show_error("Arraylist trying to insert value past Arraylist size.", false);
+		else
+		{
+			for(var i = _maxIndex-1; i > _index-1; i--)
+			{
+				_list[i+1] = _list[i];
+			}
+			_list[_index] = _value;
+			_maxIndex++;
+		}
+	}
+	
+	///param _index the index to remove
+	///desc removes a value at index position, shifts values to the right one left
+	static remove = function(_index)
+	{
+		if(_index > _maxIndex)
+			show_error("Arraylist trying to remove value past Arraylist size.", false);
+		else
+		{
+			for(var i = _index; i < _maxIndex-1; i++)
+			{
+				_list[i] = _list[i+1];
+			}
+			_maxIndex--;
+		}
+	}
+	
+	///param _index the index to set
+	///param _value the value to change _index to
+	///desc sets a value at _index to _value, increases _maxIndex to _index if _index is greater
+	static set = function(_index, _value)
+	{
+		_list[_index] = _value;
+		
+		if(_index > _maxIndex)
+			_maxIndex = _index;
+	}
+	
+	///desc gets the size of the arraylist
+	///returns the size
+	static size = function()
+	{
+		return _maxIndex;
+	}
+	
+	///param _ascend indicator of whether the arraylist should be sorted in ascending order or descending order
+	///desc sorts the list
+	static sort = function(_ascend)
+	{
+	    var list = ds_list_create();
+	    var count = _maxIndex;
+	    for (var i=0; i<count; i++)
+			list[| i] = _list[i];
+	    ds_list_sort(list, _ascend);
+	    for (i=0; i<count; i++)
+			_list[i] = list[| i];
+	    ds_list_destroy(list);
+	}
+	
+	///desc converts the list into a string
+	///returns a string
+	static toString = function()
+	{
+		var str = "[";
+		for(var i = 0; i < _maxIndex; i++)
+		{
+			str += string(_list[i])+", ";
+		}
+		str += "]";
+		return str;
+	}
+}
